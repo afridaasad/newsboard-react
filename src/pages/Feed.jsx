@@ -14,6 +14,7 @@ function Feed() {
   const [error, setError] = useState(false);
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("newest");
+  const [order, setOrder] = useState("desc");
 
   useEffect(() => {
     loadNews();
@@ -38,22 +39,22 @@ function Feed() {
   };
 
   if (error) {
-  return (
-    <div className="text-center py-20">
-      <p className="text-lg text-gray-700">
-        Failed to load news
-      </p>
+    return (
+      <div className="text-center py-20">
+        <p className="text-lg text-gray-700">
+          Failed to load news
+        </p>
 
-      <button
-        onClick={loadNews}
-        className="mt-4 px-5 py-2.5 bg-black text-white rounded-lg
-        hover:opacity-90 transition shadow-sm"
-      >
-        Retry
-      </button>
-    </div>
-  );
-}
+        <button
+          onClick={loadNews}
+          className="mt-4 px-5 py-2.5 bg-black text-white rounded-lg
+          hover:opacity-90 transition shadow-sm"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   const categorized = articles.filter(article => {
     if (category === "high") return article.score > 200;
@@ -68,40 +69,73 @@ function Feed() {
   );
 
   const sorted = [...filtered].sort((a, b) => {
-    if (sort === "newest") return b.time - a.time;
-    return b.score - a.score;
+    let result;
+
+    if (sort === "newest") {
+      result = b.time - a.time;
+    } else {
+      result = b.score - a.score;
+    }
+
+    return order === "asc" ? -result : result;
   });
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
 
       {/* toolbar */}
-      <div className="flex flex-col md:flex-row gap-3 mb-4">
+      <div className="flex flex-col gap-3 mb-4">
 
-        <div className="flex-1">
-          <SearchBar onSearch={setSearch} />
+        <SearchBar onSearch={setSearch} />
+
+        <div className="flex flex-wrap gap-2 items-center justify-between">
+
+          {/* category pills */}
+          <div className="flex gap-2 flex-wrap">
+            {["all","high","medium","low","ask"].map(c => (
+              <button
+                key={c}
+                onClick={() => setCategory(c)}
+                className={`px-3 py-1.5 rounded-full text-sm border
+                ${category === c
+                  ? "bg-black text-white"
+                  : "bg-[#f8f1e4] border-[#bfa27a]"
+                }`}
+              >
+                {c === "all" && "All"}
+                {c === "high" && "High"}
+                {c === "medium" && "Medium"}
+                {c === "low" && "Low"}
+                {c === "ask" && "Ask HN"}
+              </button>
+            ))}
+          </div>
+
+          {/* sort controls */}
+          <div className="flex gap-2 items-center">
+
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="paper-select"
+            >
+              <option value="newest">Newest</option>
+              <option value="top">Top</option>
+            </select>
+
+            <button
+              onClick={() =>
+                setOrder(order === "asc" ? "desc" : "asc")
+              }
+              className="px-3 py-2 border border-[#bfa27a] rounded-lg
+              bg-[#f8f1e4]"
+            >
+              {order === "asc" ? "↑" : "↓"}
+            </button>
+
+          </div>
+
         </div>
-
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="paper-select"
-        >
-          <option value="all">All</option>
-          <option value="high">High Score</option>
-          <option value="medium">Medium Score</option>
-          <option value="low">Low Score</option>
-          <option value="ask">Ask HN</option>
-        </select>
-
-        <select
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-          className="paper-select"
-        >
-          <option value="newest">Newest</option>
-          <option value="top">Top</option>
-        </select>
 
       </div>
 
@@ -109,7 +143,6 @@ function Feed() {
         Last updated: {lastUpdated?.toLocaleTimeString()}
       </div>
 
-      {/* grid instead of columns for smooth skeleton */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {loading
           ? Array.from({ length: 8 }).map((_, i) => (
@@ -125,15 +158,13 @@ function Feed() {
 
       {!loading && visibleCount < sorted.length && (
         <div className="flex justify-center mt-8">
-          <div className="flex justify-center mt-8">
-  <button
-    onClick={() => setVisibleCount(prev => prev + 5)}
-    className="px-6 py-3 bg-black text-white rounded-xl
-    hover:opacity-90 transition shadow-sm"
-  >
-    Load More
-  </button>
-</div>
+          <button
+            onClick={() => setVisibleCount(prev => prev + 5)}
+            className="px-6 py-3 bg-black text-white rounded-xl
+            hover:opacity-90 transition shadow-sm"
+          >
+            Load More
+          </button>
         </div>
       )}
 
