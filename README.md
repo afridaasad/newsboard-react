@@ -4,7 +4,7 @@ A multi-screen news reading application built with React. Users can browse headl
 
 Hosted App
 
-( Add deployed link here )
+https://newsboard-react.vercel.app/
 
 Tech Stack
 
